@@ -1,4 +1,4 @@
-*Crop-Prediction-Using-ML-and-Analysis-of-Soil-Nutrients-using-Satellite-imaging-and-IoT
+Crop-Prediction-Using-ML-and-Analysis-of-Soil-Nutrients-using-Satellite-imaging-and-IoT
 An Web Application developed using Streamlit to predict the suitable crop for a particular land. This is predicted by using Sentinal and Landsat images.
 
 Architecture used for crop prediction using ML
