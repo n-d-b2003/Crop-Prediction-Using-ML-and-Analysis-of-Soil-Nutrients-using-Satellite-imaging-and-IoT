@@ -1,0 +1,30 @@
+// Define the point of interest
+var point = ee.Geometry.Point(80.236410, 13.015539); // Longitude, Latitude
+
+// Define the time range
+var startDate = '2019-01-01';
+var endDate = '2019-12-31';
+
+// Filter the Landsat 8 collection
+var collection = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
+  .filterBounds(point)
+  .filterDate(startDate, endDate);
+
+// Select the bands of interest
+var bands = ['SR_B4', 'SR_B3', 'SR_B2'];
+
+// Get the median pixel values for the region of interest
+var medianImage = collection.median();
+
+// Clip the image to the point of interest
+var clippedImage = medianImage.clip(point);
+
+// Display the clipped image
+Map.centerObject(point, 16);
+Map.addLayer(clippedImage, {bands: bands, min: 0, max: 0.3}, 'Landsat 8 RGB');
+
+// Add the point as a red marker
+Map.addLayer(point, {color: 'red', pointRadius: 10}, 'Point of Interest');
+
+
+

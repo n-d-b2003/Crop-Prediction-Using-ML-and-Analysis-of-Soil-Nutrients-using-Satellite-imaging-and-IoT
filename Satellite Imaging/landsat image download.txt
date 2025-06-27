@@ -1,0 +1,88 @@
+// Function 1
+function calculateCloudScore(image) {
+  var bands = ['B1', 'B2', 'B3', 'B4', 'B5'];
+  var cloudScore = ee.Algorithms.Landsat.simpleCloudScore(image);
+  var cloudMask = cloudScore.select(['cloud']).lte(10);
+ 
+  return image.updateMask(cloudMask);
+}
+
+// Function 2
+function castToFloat32(image) {
+  return image.toFloat();
+}
+var dates = [
+  '2020-01-15', '2020-02-15', '2020-03-15', '2020-04-15',
+  '2020-05-15', '2020-06-15', '2020-07-15', '2020-08-15',
+  '2020-09-15', '2020-10-15', '2020-11-15', '2020-12-15',
+  '2021-01-15', '2021-02-15', '2021-03-15', '2021-04-15',
+  '2021-05-15', '2021-06-15', '2021-07-15', '2021-08-15',
+  '2021-09-15', '2021-10-15', '2021-11-15', '2021-12-15',
+  '2022-01-15', '2022-02-15', '2022-03-15', '2022-04-15',
+  '2022-05-15', '2022-06-15', '2022-07-15', '2022-08-15',
+  '2022-09-15', '2022-10-15', '2022-11-15', '2022-12-15',
+  '2023-01-15', '2023-02-15', '2023-03-15', '2023-04-15',
+  '2023-05-15', '2023-06-15', '2023-07-15', '2023-08-15',
+  '2023-09-15', '2023-10-15', '2023-11-15', '2023-12-15',
+  '2024-01-15', '2024-02-15', '2024-03-15', '2024-04-15',
+  '2024-05-15', '2024-06-15', '2024-07-15', '2024-08-15',
+  '2024-09-15', '2024-10-15', '2024-11-15', '2024-12-15'
+];
+var land = ["AGRILAND"]
+
+var pointsData = [
+ [
+[80.23553412284764,13.014846845515558],
+[80.23702543105992,13.014846845515558],
+[80.23702543105992,13.016529809984055],
+[80.23553412284764,13.016529809984055],
+[80.23553412284764,13.014846845515558]   
+]
+
+];
+
+
+for (var i = 0; i < dates.length; i++) {
+  
+  var targetDate = dates[i];
+
+  // Date range
+  var startDate = ee.Date(targetDate).advance(-5, 'day');
+  var endDate = ee.Date(targetDate).advance(5, 'day');
+  
+  var dataset = ee.ImageCollection('LANDSAT/LC08/C02/T1_TOA')
+  .filterDate(startDate, endDate);
+
+var roi = ee.Geometry.Polygon(
+  pointsData[0]
+);
+
+var cloudFreeDataset = dataset.map(calculateCloudScore)
+  .filterBounds(roi); 
+
+var cloudFreeDatasetFloat32 = cloudFreeDataset.map(castToFloat32);
+
+var trueColor432 = cloudFreeDatasetFloat32.select(['B4', 'B3', 'B2']);
+
+var trueColor432Vis = {
+  min: 0.0,
+  max: 0.4,
+};
+
+Map.centerObject(roi, 12); 
+
+Map.addLayer(trueColor432, trueColor432Vis, 'True Color (432)');
+
+var imageToExport = cloudFreeDatasetFloat32.first();
+
+var exportOptions = {
+  image: imageToExport,
+  description: land[0]+'_'+ targetDate, 
+  scale: 30, 
+  region: roi, 
+  folder: 'Transparency_landsat', 
+  maxPixels: 1e13, 
+};
+
+Export.image.toDrive(exportOptions);
+}
